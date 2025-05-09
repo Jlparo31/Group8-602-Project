@@ -1,7 +1,7 @@
 ---
-title: "Group Number and YOUR PROJECT TITLE"
+title: "Group 8 and YOUR PROJECT TITLE"
 subtitle: "DACSS 602 (Spring 2024)"
-author: Name 1, Name 2, and Name 3
+author: Ratan Koneru, Jadyn Perrotta, and Mala Mahadevan
 format: 
   html:
     toc: true
