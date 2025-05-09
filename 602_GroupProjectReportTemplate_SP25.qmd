@@ -50,13 +50,18 @@ Run the chosen test! To do so: (1) import the libraries you need, (2) import you
 
 ```{r}
 # import libraries
-# import data
-# test!
-
+library(readr)
+library(tidyverse)
+library(tidyr)
+library(ggplot2)
 ```
 
 
+```{r echo=FALSE}
+data <- read_csv("SP25_602_omnibus_V2_May8.csv")
 
+head(data)
+```
 
 # Results
 <!--
@@ -85,7 +90,6 @@ What are the implications of the study? What are possible explanations if the re
 Some example code for different plots. Below is only for your information. Submit your report after removing this section.
 -->
 
-```{r}
 # the built-in R data set named ToothGrowth:
 # data from a study evaluating the effect of Vitamin C on tooth growth in Guinea pigs.
 # The experiment has been performed on 60 pigs, where each animal received one of three dose levels of vitamin C (0.5, 1, and 2 mg/day) by one of two delivery methods, orange juice or ascorbic acid (a form of vitamin C and coded as VC). Tooth length was measured and a sample of the data is shown below
