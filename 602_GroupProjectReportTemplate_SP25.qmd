@@ -60,7 +60,6 @@ library(dplyr)
 
 ```{r echo=FALSE}
 data <- read_csv("SurveyResponses.csv")
-
 head(data)
 ```
 ```{r echo=FALSE}
@@ -91,6 +90,19 @@ data_clean <- data %>%
 
 # sanity check
 str(data_clean)
+```
+
+```{r}
+
+
+# ANOVA to compare willingness across AI knowledge groups
+anova_result <- aov(G8_q2_dv ~ G8_q4, data = data_clean)
+summary(anova_result)
+
+# t-test to compare willingness across Chronic Illness 
+t.test(G8_q2_dv ~ Chronic_Illness, data = data_clean)
+
+
 ```
 
 # Results
