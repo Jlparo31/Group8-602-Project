@@ -1,6 +1,6 @@
 ---
 title: "Group 8 and YOUR PROJECT TITLE"
-subtitle: "DACSS 602 (Spring 2024)"
+subtitle: "DACSS 602 (Spring 2025)"
 author: Ratan Koneru, Jadyn Perrotta, and Mala Mahadevan
 format: 
   html:
@@ -54,13 +54,43 @@ library(readr)
 library(tidyverse)
 library(tidyr)
 library(ggplot2)
+library(dplyr)
 ```
 
 
 ```{r echo=FALSE}
-data <- read_csv("SP25_602_omnibus_V2_May8.csv")
+data <- read_csv("SurveyResponses.csv")
 
 head(data)
+```
+```{r echo=FALSE}
+
+str(data)
+summary(data)
+```
+
+```{r}
+
+# Clean and format 
+data_clean <- data %>%
+  # Convert willingness to numeric
+  mutate(
+    G8_q2_dv = as.numeric(sub(" .*", "", G8_q2_dv)),
+    
+    # Convert AI knowledge to ordered factor
+    G8_q4 = factor(G8_q4, 
+                  levels = c("Never heard of", "Slightly aware", "Moderately aware"),
+                  ordered = TRUE),
+    
+    # Convert chronic illness to binary factor (Yes/No)
+    Chronic_Illness = factor(G8_q5, levels = c("No", "Yes")),
+    
+  ) %>%
+  # Remove rows with missing values
+  filter(!is.na(G8_q2_dv), !is.na(G8_q4), !is.na(Chronic_Illness))
+
+# sanity check
+str(data_clean)
 ```
 
 # Results
