@@ -30,7 +30,14 @@ Replace the placeholders (title and author) in the yaml above with your own.
 
 # Introduction
 <!--
-What is your experiment about (4-5 sentences).
+Sharing personal information has been a normal part of healthcare for a long time. 
+But it is only recently that AI has had the potential to use that information to
+help with research, as well as develop individualized treatment plans. These 
+opportunities require individuals be able to trust the system and understand 
+how it works to a limited extent. Our focus is around studying people’s 
+knowledge/awareness of AI and how that influences their willingness to share
+their personal information with AI in a medical context.
+
 -->
 
 # Methodology
@@ -78,7 +85,9 @@ data_clean <- data %>%
     
     # Convert AI knowledge to ordered factor
     G8_q4 = factor(G8_q4, 
-                  levels = c("Never heard of", "Slightly aware", "Moderately aware"),
+                  levels = c("Never heard of", "Slightly aware",
+                             "Somewhat aware", "Moderately aware",
+                             "Extremely aware"),
                   ordered = TRUE),
     
     # Convert chronic illness to binary factor (Yes/No)
