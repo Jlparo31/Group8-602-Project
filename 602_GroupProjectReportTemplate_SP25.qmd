@@ -33,16 +33,26 @@ Replace the placeholders (title and author) in the yaml above with your own.
 Sharing personal information has been a normal part of healthcare for a long time. 
 But it is only recently that AI has had the potential to use that information to
 help with research, as well as develop individualized treatment plans. These 
-opportunities require individuals be able to trust the system and understand 
-how it works to a limited extent. Our focus is around studying people’s 
-knowledge/awareness of AI and how that influences their willingness to share
-their personal information with AI in a medical context.
+opportunities require individuals to trust the system with their data. Our focus
+is around studying people’s knowledge/awareness of AI and how that influences their 
+willingness to share their personal information with AI in a medical context. Our
+hypothesis is that people with more knowledge of AI in healthcare would be more
+willing to share their data.
 
 -->
 
 # Methodology
 <!--
 Describe your experiment design, including: (1) experiment design, (2) treatments, (3) outcome variable(s), (4) sample size, and (5) data cleaning procedures (if applicable) [8-10 sentences]
+
+Our survey experiment was a between subjects design. The treatment group was presented 
+with a short infographic on how AI is used in healthcare and the control group  
+did not receive any additional information. Both groups then took a survey asking
+about their knowledge of AI in healthcare, history of chronic illness, and their 
+willingness to share medical data with AI for research and personal treatment. Our 
+independent variables were knowledge of AI and chronic illness. Our outcome
+variable was willingness to share medical data with AI. We had a sample size of
+239 subjects.
 -->
 
 # Analysis
