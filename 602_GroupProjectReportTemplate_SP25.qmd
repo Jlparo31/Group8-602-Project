@@ -1,5 +1,5 @@
 ---
-title: "Group 8 and YOUR PROJECT TITLE"
+title: "Group 8 and AI Knowledge and Willingness to Share Data in Healthcare"
 subtitle: "DACSS 602 (Spring 2025)"
 author: Ratan Koneru, Jadyn Perrotta, and Mala Mahadevan
 format: 
@@ -29,7 +29,7 @@ Replace the placeholders (title and author) in the yaml above with your own.
 
 
 # Introduction
-<!--
+
 Sharing personal information has been a normal part of healthcare for a long time. 
 But it is only recently that AI has had the potential to use that information to
 help with research, as well as develop individualized treatment plans. These 
@@ -39,11 +39,12 @@ willingness to share their personal information with AI in a medical context. Ou
 hypothesis is that people with more knowledge of AI in healthcare would be more
 willing to share their data.
 
--->
+
 
 # Methodology
 <!--
 Describe your experiment design, including: (1) experiment design, (2) treatments, (3) outcome variable(s), (4) sample size, and (5) data cleaning procedures (if applicable) [8-10 sentences]
+-->
 
 Our survey experiment was a between subjects design. The treatment group was presented 
 with a short infographic on how AI is used in healthcare and the control group  
@@ -52,14 +53,57 @@ about their knowledge of AI in healthcare, history of chronic illness, and their
 willingness to share medical data with AI for research and personal treatment. Our 
 independent variables were knowledge of AI and chronic illness. Our outcome
 variable was willingness to share medical data with AI. We had a sample size of
-239 subjects.
--->
+239 subjects. The survey data was relatively clean - no invalid entries or 'NA' 
+responses. Our processing involved adding dummy variables to translate verbal
+responses into categorical/continues variables for analysis.
+
+
+#Hypothesis
+
+We had three hypothesis to test with our data.
+
+1) People shown the infographic on AI (treatment group) will show increased 
+willingness to share personal data with AI applications
+H0 - The treatment has no effect on willingness to share personal data with AI
+H1 - The treatment has significant effect on willingness to share personal data
+     with AI
+     
+2) People with one or more chronic illness will show increased willingness to
+share to share personal data with AI applications
+H0 - Chronic illness has no effect on willingness to share personal data with AI
+H1 - Chronic illness has significant effect on willingness to share personal data
+     with AI
+     
+3) People with self-reported increased knowledge of AI will show increased
+willingness to share personal data with AI applications
+H0 - Increased knowledge of AI has no effect on willingness to share personal
+     data with AI
+H1 - Increased knowledge of AI has significant effect on willingness to share
+     personal data with AI
+
+
 
 # Analysis
 
 <!--
 Which statistical test is used, and why? [3-4 sentences]
 -->
+For our first hypothesis we used a t-test. Assumptions to use t-test:
+1 Is the outcome variable continues? It is a categorical variable with 5 categories 
+so may be deemed continues for this exercise.
+2 Are the test groups independent of one another? Yes
+3 Is the outcome normally distributed? Assuming a yes.
+4 Are the variances equal between outcomes? 
+
+For our second hypothesis we ran a factorial ANOVA to see whether chronic illness
+had an effect together with the treatment/control group on willingness to share
+data with AI. We also ran a t-test with just chronic illness to see whether chronic 
+illness alone had an effect on willingness to share data with AI.
+
+For our third hypothesis we ran an ANOVA since the independent variable (knowledge
+of AI) had more than two levels.
+
+
 
 <!--
 Run the chosen test! To do so: (1) import the libraries you need, (2) import your data, (3) double-check the names of your IV(s) and DV, and (4) run the test. For information on the libraries and R syntax, refer to see Lecture 602-statistics(May 1).
@@ -75,51 +119,84 @@ library(dplyr)
 ```
 
 
-```{r echo=FALSE}
-data <- read_csv("SurveyResponses.csv")
-head(data)
-```
-```{r echo=FALSE}
-
-str(data)
-summary(data)
-```
-
 ```{r}
+#read in data and select variables for analysis
+surveydata <- read_csv("Data/SP25_602_omnibus_V2_May8.csv")
 
-# Clean and format 
-data_clean <- data %>%
-  # Convert willingness to numeric
-  mutate(
-    G8_q2_dv = as.numeric(sub(" .*", "", G8_q2_dv)),
-    
-    # Convert AI knowledge to ordered factor
-    G8_q4 = factor(G8_q4, 
-                  levels = c("Never heard of", "Slightly aware",
+filtered_survey <- surveydata |> 
+  select(Gender,Age,G8_q2_dv,G8_q3_dv,G8_q4,G8_q5,G8_q6,G8_AI_Health_DO)
+
+#add dummy variables for analysis
+filtered_survey <- filtered_survey |> mutate(AIApplications = case_when(
+    G8_q2_dv == "5 - Strongly Agree" ~ 5,
+    G8_q2_dv == "4 - Agree" ~ 4,
+    G8_q2_dv == "3 - Neutral" ~ 3,
+    G8_q2_dv == "2 - Disagree" ~ 2,
+    G8_q2_dv == "1 - Strongly Disagree" ~ 1
+  ))
+
+filtered_survey <- filtered_survey |> mutate(AIResearch = case_when(
+    G8_q3_dv == "5 - Strongly Agree" ~ 5,
+    G8_q3_dv == "4 - Agree" ~ 4,
+    G8_q3_dv == "3 - Neutral" ~ 3,
+    G8_q3_dv == "2- Disagree" ~ 2,
+    G8_q3_dv == "1 - Strongly Disagree" ~ 1
+  ))
+
+filtered_survey <- filtered_survey |> mutate(AIUseinHealthCare = case_when(
+    G8_q4 == "Never heard of" ~ 1,
+    G8_q4 == "Slightly aware" ~ 2,
+    G8_q4 == "Somewhat aware" ~ 3,
+    G8_q4 == "Moderately aware" ~ 4,
+    G8_q4 == "Extremely aware" ~ 5
+  ))
+
+filtered_survey <- filtered_survey |> mutate(AITraining = case_when(
+    G8_q5 == "Yes" ~ 1,
+    G8_q5 == "No" ~ 0
+  ))
+
+filtered_survey <- filtered_survey |> mutate(ChronicIllness = case_when(
+    G8_q6 == "None of these" ~ 0,
+    G8_q6 != "None of these" ~ 1
+  ))
+
+filtered_survey$ControlorTreatment <- ifelse(grepl("treatment", filtered_survey$G8_AI_Health_DO), 1, 0)
+
+filtered_survey <- filtered_survey |>
+  mutate(G8_q4 = factor(G8_q4, levels = c("Never heard of", "Slightly aware",
                              "Somewhat aware", "Moderately aware",
                              "Extremely aware"),
-                  ordered = TRUE),
-    
-    # Convert chronic illness to binary factor (Yes/No)
-    Chronic_Illness = factor(G8_q5, levels = c("No", "Yes")),
-    
-  ) %>%
-  # Remove rows with missing values
-  filter(!is.na(G8_q2_dv), !is.na(G8_q4), !is.na(Chronic_Illness))
+                  ordered = TRUE))
+#filter data by gender
+data_males <- filter(filtered_survey, Gender == "Male")
+data_females <- filter(filtered_survey, Gender == "Female")
 
-# sanity check
-str(data_clean)
 ```
 
+#Tests
 ```{r}
 
+#Hypothesis 1
+t.test(filtered_survey$AIApplications ~ as.factor(filtered_survey$ControlorTreatment), var.equal = FALSE)
 
-# ANOVA to compare willingness across AI knowledge groups
-anova_result <- aov(G8_q2_dv ~ G8_q4, data = data_clean)
-summary(anova_result)
+#Hypothesis 2
+model <- aov(AIApplications ~ as.factor(ControlorTreatment) * ChronicIllness, data = filtered_survey)
+summary(model)
 
-# t-test to compare willingness across Chronic Illness 
-t.test(G8_q2_dv ~ Chronic_Illness, data = data_clean)
+t.test(filtered_survey$AIApplications ~ as.factor(filtered_survey$ChronicIllness), var.equal = FALSE)
+
+#Hypothesis 3
+model <- aov(filtered_survey$AIApplications ~ as.factor(filtered_survey$AIUseinHealthCare) ,data = filtered_survey)
+summary(model)
+
+#Test if gender affects hypothesis 3
+model <- aov(AIApplications ~ AIUseinHealthCare ,data = data_males)
+summary(model)
+
+model <- aov(AIApplications ~ AIUseinHealthCare ,data = data_females)
+summary(model)
+
 
 
 ```
@@ -129,8 +206,24 @@ t.test(G8_q2_dv ~ Chronic_Illness, data = data_clean)
 Report and interpret the test results. For information on what should be included, refer to Lecture 602-statistics(May 1). Also add at least one plot.
 -->
 
+Test Hypothesis 1:
+The p value is 0.1109 , significantly greater than 0.05 which indicates that we cannot reject the null hypothesis. Mean of control group is 2.94 and treatment group is 3.20.
+The treatment has not significantly improved outcome - willingness to share data with AI applications.
 
+Test Hypothesis 2:
+The p value of the factorial ANOVA is 0.110 indicating lack of statistical evidence for any correlation.
+The p value of the t-test is .315 also indicating a lack of statstical evidence for correlation
 
+Test Hypothesis 3:
+The low p value of 1.05e-08 suggests statistical significance and we can confidently reject the null hypothesis that knowledge of AI does not significantly impact willingness to share data with AI 
+Applications. Low p-values of ANOVAs by gender suggest effect exists in both survey genders.
+
+```{r}
+#box plot of willingness to share vs AI knowledge
+ggplot(filtered_survey, aes(x = G8_q4, y = AIApplications)) +
+  geom_boxplot()
+
+```
 
 # Findings
 <!--
@@ -169,7 +262,7 @@ table(my_data$supp, my_data$dose)
 ```
 
 
-```{r}
+#```{r}
 # Line plots with multiple groups
 # plot tooth length ("len") by groups ("dose")
 # color box plot by a second group: "supp"
@@ -185,7 +278,7 @@ boxplot(len ~ supp * dose, data = my_data, frame = FALSE,
         col = c("#00AFBB", "#E7B800"), ylab = "Tooth Length")
 
 # Another example: Two-way interaction plot
-interaction.plot(x.factor = my_data$dose, trace.factor = my_data$supp, 
+interaction.plot(x.factor = my_data$dose, trace.factor = my_data$supp,
                  # x.factor: the factor to be plotted on x axis
                  # trace.factor: the factor to be plotted as lines
                  # response: a numeric variable giving the response
