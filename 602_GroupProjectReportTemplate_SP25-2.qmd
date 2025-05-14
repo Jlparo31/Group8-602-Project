@@ -1,0 +1,381 @@
+---
+title: "Group 8 and AI Knowledge and Willingness to Share Data in Healthcare"
+subtitle: "DACSS 602 (Spring 2025)"
+author: Ratan Koneru, Jadyn Perrotta, and Mala Mahadevan
+format: 
+  html:
+    toc: true
+    toc-depth: 2
+    toc-title: Contents
+    toc-location: left
+    html-math-method: katex
+    theme: flatly
+    smooth-scroll: true
+    link-external-icon: true
+    link-external-newwindow: true
+    citations-hover: true
+    footnotes-hover: true
+    font-size: 80%
+---
+
+<!--
+ATTENTION: Please submit both your .qmd file and the corresponding ".html" file after rendering.
+-->
+
+
+<!--
+Replace the placeholders (title and author) in the yaml above with your own.
+-->
+
+
+# Introduction
+
+Sharing personal information has been a normal part of healthcare for a long time. 
+But it is only recently that AI has had the potential to use that information to
+help with research, as well as develop individualized treatment plans. These 
+opportunities require individuals to trust the system with their data. Our focus
+is around studying people’s knowledge/awareness of AI and how that influences their 
+willingness to share their personal information with AI in a medical context. Our
+hypothesis is that people with more knowledge of AI in healthcare would be more
+willing to share their data.
+
+
+
+# Methodology
+<!--
+Describe your experiment design, including: (1) experiment design, (2) treatments, (3) outcome variable(s), (4) sample size, and (5) data cleaning procedures (if applicable) [8-10 sentences]
+-->
+
+Our survey experiment was a between subjects design. The treatment group was presented 
+with a short infographic on how AI is used in healthcare and the control group  
+did not receive any additional information. Both groups then took a survey asking
+about their knowledge of AI in healthcare, history of chronic illness, and their 
+willingness to share medical data with AI for research and personal treatment. Our 
+independent variables were knowledge of AI and chronic illness. Our outcome
+variable was willingness to share medical data with AI. We had a sample size of
+239 subjects. The survey data was relatively clean - no invalid entries or 'NA' 
+responses. Our processing involved adding dummy variables to translate verbal
+responses into categorical/continues variables for analysis.
+
+
+# Hypothesis
+
+We had three hypothesis to test with our data.
+
+1) People shown the infographic on AI (treatment group) will show increased 
+willingness to share personal data with AI applications
+
+H0 - The treatment has no effect on willingness to share personal data with AI
+
+H1 - The treatment has significant effect on willingness to share personal data
+     with AI
+     
+2) People with one or more chronic illness will show increased willingness to
+share to share personal data with AI applications
+
+H0 - Chronic illness has no effect on willingness to share personal data with AI
+
+H1 - Chronic illness has significant effect on willingness to share personal data
+     with AI
+     
+3) People with self-reported increased knowledge of AI will show increased
+willingness to share personal data with AI applications
+
+H0 - Increased knowledge of AI has no effect on willingness to share personal
+     data with AI
+     
+H1 - Increased knowledge of AI has significant effect on willingness to share
+     personal data with AI
+
+
+
+# Analysis
+
+<!--
+Which statistical test is used, and why? [3-4 sentences]
+-->
+For our first hypothesis we used a t-test. Assumptions to use t-test:
+1 Is the outcome variable continues? It is a categorical variable with 5 categories 
+so may be deemed continues for this exercise.
+2 Are the test groups independent of one another? Yes
+3 Is the outcome normally distributed? Assuming a yes.
+4 Are the variances equal between outcomes? 
+
+For our second hypothesis we ran a factorial ANOVA to see whether chronic illness
+had an effect together with the treatment/control group on willingness to share
+data with AI. We also ran a t-test with just chronic illness to see whether chronic 
+illness alone had an effect on willingness to share data with AI.
+
+For our third hypothesis we ran an ANOVA since the independent variable (knowledge
+of AI) had more than two levels.
+
+
+
+<!--
+Run the chosen test! To do so: (1) import the libraries you need, (2) import your data, (3) double-check the names of your IV(s) and DV, and (4) run the test. For information on the libraries and R syntax, refer to see Lecture 602-statistics(May 1).
+-->
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+# import libraries
+suppressPackageStartupMessages({
+  library(readr)
+  library(tidyverse)
+  library(tidyr)
+  library(ggplot2)
+  library(gridExtra)
+  library(dplyr)
+  library(knitr)
+
+})
+```
+
+
+
+```{r echo=FALSE}
+# import data
+surveydata <- read_csv("SP25_602_omnibus_V2_May8.csv", show_col_types = FALSE)
+```
+
+```{r}
+
+# data transformation
+
+filtered_survey <- surveydata |> 
+  select(Gender,Age,G8_q2_dv,G8_q3_dv,G8_q4,G8_q5,G8_q6,G8_AI_Health_DO)
+
+# add dummy variables for analysis
+filtered_survey <- filtered_survey |> mutate(AIApplications = case_when(
+    G8_q2_dv == "5 - Strongly Agree" ~ 5,
+    G8_q2_dv == "4 - Agree" ~ 4,
+    G8_q2_dv == "3 - Neutral" ~ 3,
+    G8_q2_dv == "2 - Disagree" ~ 2,
+    G8_q2_dv == "1 - Strongly Disagree" ~ 1
+  ))
+
+filtered_survey <- filtered_survey |> mutate(AIResearch = case_when(
+    G8_q3_dv == "5 - Strongly Agree" ~ 5,
+    G8_q3_dv == "4 - Agree" ~ 4,
+    G8_q3_dv == "3 - Neutral" ~ 3,
+    G8_q3_dv == "2- Disagree" ~ 2,
+    G8_q3_dv == "1 - Strongly Disagree" ~ 1
+  ))
+
+filtered_survey <- filtered_survey |> mutate(AIUseinHealthCare = case_when(
+    G8_q4 == "Never heard of" ~ 1,
+    G8_q4 == "Slightly aware" ~ 2,
+    G8_q4 == "Somewhat aware" ~ 3,
+    G8_q4 == "Moderately aware" ~ 4,
+    G8_q4 == "Extremely aware" ~ 5
+  ))
+
+filtered_survey <- filtered_survey |> mutate(AITraining = case_when(
+    G8_q5 == "Yes" ~ 1,
+    G8_q5 == "No" ~ 0
+  ))
+
+filtered_survey <- filtered_survey |> mutate(ChronicIllness = case_when(
+    G8_q6 == "None of these" ~ 0,
+    G8_q6 != "None of these" ~ 1
+  ))
+
+filtered_survey$ControlorTreatment <- ifelse(grepl("treatment", filtered_survey$G8_AI_Health_DO), 1, 0)
+
+filtered_survey <- filtered_survey |>
+  mutate(G8_q4 = factor(G8_q4, levels = c("Never heard of", "Slightly aware",
+                             "Somewhat aware", "Moderately aware",
+                             "Extremely aware"),
+                  ordered = TRUE))
+# filter data by gender
+data_males <- filter(filtered_survey, Gender == "Male")
+data_females <- filter(filtered_survey, Gender == "Female")
+
+```
+
+# Tests
+
+### Hypothesis 1 Infographic: Welch Two Sample t-test
+```{r echo=FALSE}
+
+# Hypothesis 1: t-test
+t.test(filtered_survey$AIApplications ~ as.factor(filtered_survey$ControlorTreatment), var.equal = FALSE)
+
+``` 
+
+### Hypothesis 2 Chronic Illness: ANOVA
+```{r echo=FALSE}
+# Hypothesis 2: anova 
+aov_model_h2 <- aov(AIApplications ~ as.factor(ControlorTreatment) * ChronicIllness, data = filtered_survey)
+summary(aov_model_h2)
+```
+
+### Hypothesis 2 Chronic Illness: Welch Two Sample t-test
+```{r echo=FALSE}
+# Hypothesis 2: t-test 
+t.test(filtered_survey$AIApplications ~ as.factor(filtered_survey$ChronicIllness), var.equal = FALSE)
+
+```
+
+### Hypothesis 3 AI Knowledge: ANOVA
+```{r echo=FALSE}
+# Hypothesis 3: anova
+aov_model_h3 <- aov(filtered_survey$AIApplications ~ as.factor(filtered_survey$AIUseinHealthCare), data = filtered_survey)
+summary(aov_model_h3)
+```
+
+### Hypothesis 3 AI Knowledge: ANOVA by male gender
+```{r echo=FALSE}
+# Hypothesis 3: anova by gender 
+aov_model_h3_male <- aov(AIApplications ~ AIUseinHealthCare, data = data_males)
+summary(aov_model_h3_male)
+```
+
+### Hypothesis 3 AI Knowledge: ANOVA by female gender  
+```{r echo=FALSE}
+# female
+aov_model_h3_female <- aov(AIApplications ~ AIUseinHealthCare, data = data_females)
+summary(aov_model_h3_female)
+```
+
+
+
+# Results
+<!--
+Report and interpret the test results. For information on what should be included, refer to Lecture 602-statistics(May 1). Also add at least one plot.
+-->
+
+Test Hypothesis 1:
+The p value is 0.1109 , significantly greater than 0.05 which indicates that we cannot reject the null hypothesis. Mean of control group is 2.94 and treatment group is 3.20.
+The treatment has not significantly improved outcome - willingness to share data with AI applications.
+
+Test Hypothesis 2:
+The p value of the factorial ANOVA is 0.110 indicating lack of statistical evidence for any correlation.
+The p value of the t-test is .315 also indicating a lack of statstical evidence for correlation
+
+Test Hypothesis 3:
+The low p value of 1.05e-08 suggests statistical significance and we can confidently reject the null hypothesis that knowledge of AI does not significantly impact willingness to share data with AI 
+Applications. Low p-values of ANOVAs by gender suggest effect exists in both survey genders.
+
+```{r, echo=FALSE, fig.cap="Figure 1 Boxplot of Willingness to Share vs AI Knowledge", fig.align="center"}
+# box plot of willingness to share vs AI knowledge
+ggplot(filtered_survey, aes(x = G8_q4, y = AIApplications)) +
+  geom_boxplot()
+```
+
+
+
+# Findings
+<!--
+Findings: Report the statistic you obtained along with the information to decide whether the null hypothesis can be rejected or not. Use a plot and/or table with a proper label.
+-->
+
+```{r echo=FALSE, fig.cap="Figure 2 Effects of Treatment, Chronic Illness, and AI Knowleedge on Willingness to Share Data with AI", fig.align="center"}
+
+# Plot 1 : Treament/Infographic 
+
+plot1 <- ggplot(filtered_survey, aes(x = as.factor(ControlorTreatment), y = AIApplications)) +
+  geom_boxplot(fill = "skyblue") +
+  labs(title = "Willingness by Treatment Group",
+       x = "Group (0 = Control, 1 = Treatment)",
+       y = "H1") +
+  theme_minimal()
+
+
+# Plot 2: Chronic illness effect
+plot2 <- ggplot(filtered_survey, aes(x = as.factor(ChronicIllness), y = AIApplications)) +
+  geom_boxplot(fill = "lightgreen") +
+  labs(title = "Willingness by Chronic Illness Status",
+       x = "Chronic Illness (0 = No, 1= Yes)",
+       y = "H2") +
+  theme_minimal()
+
+# Plot 3: AI Knowledge effect
+plot3 <- ggplot(filtered_survey, aes(x = as.factor(AIUseinHealthCare), y = AIApplications)) +
+  stat_summary(fun = mean, geom = "line", aes(group = 1), color = "darkblue") +
+  stat_summary(fun.data = mean_cl_normal, geom = "errorbar", width = 0.1) +
+  labs(title = "Willingness by AI Knowledge Level",
+       x = "AI Knowledge (1–5)",
+       y = "H3") +
+  theme_minimal()
+
+# Display all three plots in one figure
+grid.arrange(plot1, plot2, plot3, ncol = 1)
+
+
+```
+
+
+
+**Hypothesis 1: Effect of Treatment (AI Infographic)**
+
+Since p = 0.1109 (>0.05), we fail to reject the null hypothesis. The 95% confidence interval for the difference in means is [-0.574, 0.059], which includes 0, suggests no statistically significant difference. Therefore, exposure to the infographic did not significantly increase participants' willingness to share personal data.
+
+**Hypothesis 2: Effect of Chronic Illness**
+
+ANOVA: p = 0.1112 (>0.05), so we fail to reject the null hypothesis. The 95% confidence interval for the difference in means is [-0.491, 0.159], which includes 0, suggests no statistically significant difference. Therefore, Chronic illness does not significantly influence willingness to share personal data with AI applications.
+
+Welch Two Sample t-test: p = 0.315 (>0.05) we also fail to reject the null hypothesis. This further confirms that chronic illness does not significantly influence willingness to share personal data with AI applications.
+
+
+**Hypothesis 3: Knowledge of AI** 
+
+Since p < 0.05 for all the ANOVA tests (Overall: p = 1.05e-08, Males: p = 9.05e-08, Females: p = 9.71e-05), we reject the null hypothesis. Higher self-reported AI knowledge is significantly associated with greater willingness to share personal data with AI applications, with significance seen across all gender groups.
+
+```{r echo=FALSE}
+
+# Hypothesis 1 (Infographic): Welch Two Sample t-test
+t_test_infographic <- t.test(filtered_survey$AIApplications ~ as.factor(filtered_survey$ControlorTreatment), var.equal = FALSE)
+p_value_infographic <- t_test_infographic$p.value
+CI_infographic <- paste0("[", round(t_test_infographic$conf.int[1], 3), ", ", round(t_test_infographic$conf.int[2], 3), "]")
+
+# Hypothesis 2 (Chronic Illness): Welch Two Sample t-test
+t_test_chronic <- t.test(filtered_survey$AIApplications ~ as.factor(filtered_survey$ChronicIllness), var.equal = FALSE)
+p_value_chronic_ttest <- t_test_chronic$p.value
+CI_chronic <- paste0("[", round(t_test_chronic$conf.int[1], 3), ", ", round(t_test_chronic$conf.int[2], 3), "]")
+
+# Hypothesis 3 (AI Knowledge): Extract p-values from previously defined aov models
+p_value_ai_knowledge <- summary(aov_model_h3)[[1]]$`Pr(>F)`[1]
+p_value_ai_males <- summary(aov_model_h3_male)[[1]]$`Pr(>F)`[1]
+p_value_ai_females <- summary(aov_model_h3_female)[[1]]$`Pr(>F)`[1]
+
+# Hypothesis 2 (Chronic Illness): ANOVA p-value
+p_value_chronic_anova <- summary(aov_model_h2)[[1]]$`Pr(>F)`[1]
+
+# Create summary table with p-values and CI where applicable
+summary_table <- data.frame(
+  Hypothesis = c("Treatment (Infographic)", "Chronic Illness", "Chronic Illness", 
+                 "AI Knowledge (Overall)", "AI Knowledge (Males)", "AI Knowledge (Females)"),
+  Test = c("Welch t-test", "ANOVA", "Welch t-test", "ANOVA", "ANOVA", "ANOVA"),
+  p_value = c(format(p_value_infographic, scientific = FALSE, digits = 4),
+              format(p_value_chronic_anova, scientific = FALSE, digits = 4),
+              format(p_value_chronic_ttest, scientific = FALSE, digits = 4),
+              format(p_value_ai_knowledge, scientific = FALSE, digits = 4),
+              format(p_value_ai_males, scientific = FALSE, digits = 4),
+              format(p_value_ai_females, scientific = FALSE, digits = 4)),
+  Significant = c(ifelse(p_value_infographic < 0.05, "Yes", "No"),
+                  ifelse(p_value_chronic_anova < 0.05, "Yes", "No"),
+                  ifelse(p_value_chronic_ttest < 0.05, "Yes", "No"),
+                  ifelse(p_value_ai_knowledge < 0.05, "Yes", "No"),
+                  ifelse(p_value_ai_males < 0.05, "Yes", "No"),
+                  ifelse(p_value_ai_females < 0.05, "Yes", "No")),
+  CI = c(CI_infographic, CI_chronic, "N/A", "N/A", "N/A", "N/A")  # CI for t-tests, not ANOVA
+)
+
+# Display table
+knitr::kable(summary_table, caption = "Summary Table with p-values, 95% Confidence Interval (CI), and Significance")
+```
+
+# Discussion
+<!--
+What are the implications of the study? What are possible explanations if the results do not align with your hypothesis? Any suggestions for future studies?
+-->
+
+This study explored the factors influencing individual's willingness to share personal data with AI applications. The results suggest that self-reported AI knowledge significantly impacted participants' willingness to share their data, while exposure to an AI infographic and/or presence of chronic illness did not. 
+
+The significant effect of AI knowledge suggests that individuals who feel more informed about AI are more likely to trust it with their personal information. On the otherhand, the lack of effectiveness from the treatment may indicate that a single exposure is not enough to change people's perceptions of AI. It is also possible that the infographic wasn't informative enough. Similarly, the lack of significance of chronic illness could reflect privacy or personal concerns that were not captured by our survey. 
+
+These findings suggest that efforts aimed at increasing AI knowledge could potentially increase public trust in AI technology. Educational resources that address common misconceptions and/or define the benefits versus risks could be useful for future adaptiation or implementation of AI applications. 
+
+Future research could explore how different methods of education improve data-sharing attitudes. Additionally, another study could explore how privacy concerns related to AI and personal data vary across different socioeconomic and demographic groups. 
+
+
+
