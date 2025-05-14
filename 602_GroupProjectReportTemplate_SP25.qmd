@@ -125,7 +125,8 @@ suppressPackageStartupMessages({
   library(gridExtra)
   library(dplyr)
   library(knitr)
-
+  library(Hmisc)
+  
 })
 ```
 
@@ -258,7 +259,8 @@ Applications. Low p-values of ANOVAs by gender suggest effect exists in both sur
 ```{r, echo=FALSE, fig.cap="Figure 1 Boxplot of Willingness to Share vs AI Knowledge", fig.align="center"}
 # box plot of willingness to share vs AI knowledge
 ggplot(filtered_survey, aes(x = G8_q4, y = AIApplications)) +
-  geom_boxplot()
+  geom_boxplot()+
+  labs(x = "Knowledge of AI", y = "Willingness to share data")
 ```
 
 
