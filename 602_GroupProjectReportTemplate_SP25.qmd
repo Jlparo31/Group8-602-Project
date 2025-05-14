@@ -58,26 +58,32 @@ responses. Our processing involved adding dummy variables to translate verbal
 responses into categorical/continues variables for analysis.
 
 
-#Hypothesis
+# Hypothesis
 
 We had three hypothesis to test with our data.
 
 1) People shown the infographic on AI (treatment group) will show increased 
 willingness to share personal data with AI applications
+
 H0 - The treatment has no effect on willingness to share personal data with AI
+
 H1 - The treatment has significant effect on willingness to share personal data
      with AI
      
 2) People with one or more chronic illness will show increased willingness to
 share to share personal data with AI applications
+
 H0 - Chronic illness has no effect on willingness to share personal data with AI
+
 H1 - Chronic illness has significant effect on willingness to share personal data
      with AI
      
 3) People with self-reported increased knowledge of AI will show increased
 willingness to share personal data with AI applications
+
 H0 - Increased knowledge of AI has no effect on willingness to share personal
      data with AI
+     
 H1 - Increased knowledge of AI has significant effect on willingness to share
      personal data with AI
 
@@ -109,24 +115,35 @@ of AI) had more than two levels.
 Run the chosen test! To do so: (1) import the libraries you need, (2) import your data, (3) double-check the names of your IV(s) and DV, and (4) run the test. For information on the libraries and R syntax, refer to see Lecture 602-statistics(May 1).
 -->
 
-```{r}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 # import libraries
-library(readr)
-library(tidyverse)
-library(tidyr)
-library(ggplot2)
-library(dplyr)
+suppressPackageStartupMessages({
+  library(readr)
+  library(tidyverse)
+  library(tidyr)
+  library(ggplot2)
+  library(gridExtra)
+  library(dplyr)
+  library(knitr)
+
+})
 ```
 
 
+
+```{r echo=FALSE}
+# import data
+surveydata <- read_csv("data/SP25_602_omnibus_V2_May8.csv", show_col_types = FALSE)
+```
+
 ```{r}
-#read in data and select variables for analysis
-surveydata <- read_csv("Data/SP25_602_omnibus_V2_May8.csv")
+
+# data transformation
 
 filtered_survey <- surveydata |> 
   select(Gender,Age,G8_q2_dv,G8_q3_dv,G8_q4,G8_q5,G8_q6,G8_AI_Health_DO)
 
-#add dummy variables for analysis
+# add dummy variables for analysis
 filtered_survey <- filtered_survey |> mutate(AIApplications = case_when(
     G8_q2_dv == "5 - Strongly Agree" ~ 5,
     G8_q2_dv == "4 - Agree" ~ 4,
@@ -168,38 +185,58 @@ filtered_survey <- filtered_survey |>
                              "Somewhat aware", "Moderately aware",
                              "Extremely aware"),
                   ordered = TRUE))
-#filter data by gender
+# filter data by gender
 data_males <- filter(filtered_survey, Gender == "Male")
 data_females <- filter(filtered_survey, Gender == "Female")
 
 ```
 
-#Tests
-```{r}
+# Tests
 
-#Hypothesis 1
+### Hypothesis 1 Infographic: Welch Two Sample t-test
+```{r echo=FALSE}
+
+# Hypothesis 1: t-test
 t.test(filtered_survey$AIApplications ~ as.factor(filtered_survey$ControlorTreatment), var.equal = FALSE)
 
-#Hypothesis 2
-model <- aov(AIApplications ~ as.factor(ControlorTreatment) * ChronicIllness, data = filtered_survey)
-summary(model)
+``` 
 
+### Hypothesis 2 Chronic Illness: ANOVA
+```{r echo=FALSE}
+# Hypothesis 2: anova 
+aov_model_h2 <- aov(AIApplications ~ as.factor(ControlorTreatment) * ChronicIllness, data = filtered_survey)
+summary(aov_model_h2)
+```
+
+### Hypothesis 2 Chronic Illness: Welch Two Sample t-test
+```{r echo=FALSE}
+# Hypothesis 2: t-test 
 t.test(filtered_survey$AIApplications ~ as.factor(filtered_survey$ChronicIllness), var.equal = FALSE)
 
-#Hypothesis 3
-model <- aov(filtered_survey$AIApplications ~ as.factor(filtered_survey$AIUseinHealthCare) ,data = filtered_survey)
-summary(model)
-
-#Test if gender affects hypothesis 3
-model <- aov(AIApplications ~ AIUseinHealthCare ,data = data_males)
-summary(model)
-
-model <- aov(AIApplications ~ AIUseinHealthCare ,data = data_females)
-summary(model)
-
-
-
 ```
+
+### Hypothesis 3 AI Knowledge: ANOVA
+```{r echo=FALSE}
+# Hypothesis 3: anova
+aov_model_h3 <- aov(filtered_survey$AIApplications ~ as.factor(filtered_survey$AIUseinHealthCare), data = filtered_survey)
+summary(aov_model_h3)
+```
+
+### Hypothesis 3 AI Knowledge: ANOVA by male gender
+```{r echo=FALSE}
+# Hypothesis 3: anova by gender 
+aov_model_h3_male <- aov(AIApplications ~ AIUseinHealthCare, data = data_males)
+summary(aov_model_h3_male)
+```
+
+### Hypothesis 3 AI Knowledge: ANOVA by female gender  
+```{r echo=FALSE}
+# female
+aov_model_h3_female <- aov(AIApplications ~ AIUseinHealthCare, data = data_females)
+summary(aov_model_h3_female)
+```
+
+
 
 # Results
 <!--
@@ -218,74 +255,127 @@ Test Hypothesis 3:
 The low p value of 1.05e-08 suggests statistical significance and we can confidently reject the null hypothesis that knowledge of AI does not significantly impact willingness to share data with AI 
 Applications. Low p-values of ANOVAs by gender suggest effect exists in both survey genders.
 
-```{r}
-#box plot of willingness to share vs AI knowledge
+```{r, echo=FALSE, fig.cap="Figure 1 Boxplot of Willingness to Share vs AI Knowledge", fig.align="center"}
+# box plot of willingness to share vs AI knowledge
 ggplot(filtered_survey, aes(x = G8_q4, y = AIApplications)) +
   geom_boxplot()
-
 ```
+
+
 
 # Findings
 <!--
 Findings: Report the statistic you obtained along with the information to decide whether the null hypothesis can be rejected or not. Use a plot and/or table with a proper label.
 -->
 
+```{r echo=FALSE, fig.cap="Figure 2 Effects of Treatment, Chronic Illness, and AI Knowleedge on Willingness to Share Data with AI", fig.align="center"}
 
+# Plot 1 : Treament/Infographic 
+
+plot1 <- ggplot(filtered_survey, aes(x = as.factor(ControlorTreatment), y = AIApplications)) +
+  geom_boxplot(fill = "skyblue") +
+  labs(title = "Willingness by Treatment Group",
+       x = "Group (0 = Control, 1 = Treatment)",
+       y = "H1") +
+  theme_minimal()
+
+
+# Plot 2: Chronic illness effect
+plot2 <- ggplot(filtered_survey, aes(x = as.factor(ChronicIllness), y = AIApplications)) +
+  geom_boxplot(fill = "lightgreen") +
+  labs(title = "Willingness by Chronic Illness Status",
+       x = "Chronic Illness (0 = No, 1= Yes)",
+       y = "H2") +
+  theme_minimal()
+
+# Plot 3: AI Knowledge effect
+plot3 <- ggplot(filtered_survey, aes(x = as.factor(AIUseinHealthCare), y = AIApplications)) +
+  stat_summary(fun = mean, geom = "line", aes(group = 1), color = "darkblue") +
+  stat_summary(fun.data = mean_cl_normal, geom = "errorbar", width = 0.1) +
+  labs(title = "Willingness by AI Knowledge Level",
+       x = "AI Knowledge (1–5)",
+       y = "H3") +
+  theme_minimal()
+
+# Display all three plots in one figure
+grid.arrange(plot1, plot2, plot3, ncol = 1)
+
+
+```
+
+
+
+**Hypothesis 1: Effect of Treatment (AI Infographic)**
+
+Since p = 0.1109 (>0.05), we fail to reject the null hypothesis. The 95% confidence interval for the difference in means is [-0.574, 0.059], which includes 0, suggests no statistically significant difference. Therefore, exposure to the infographic did not significantly increase participants' willingness to share personal data.
+
+**Hypothesis 2: Effect of Chronic Illness**
+
+ANOVA: p = 0.1112 (>0.05), so we fail to reject the null hypothesis. The 95% confidence interval for the difference in means is [-0.491, 0.159], which includes 0, suggests no statistically significant difference. Therefore, Chronic illness does not significantly influence willingness to share personal data with AI applications.
+
+Welch Two Sample t-test: p = 0.315 (>0.05) we also fail to reject the null hypothesis. This further confirms that chronic illness does not significantly influence willingness to share personal data with AI applications.
+
+
+**Hypothesis 3: Knowledge of AI** 
+
+Since p < 0.05 for all the ANOVA tests (Overall: p = 1.05e-08, Males: p = 9.05e-08, Females: p = 9.71e-05), we reject the null hypothesis. Higher self-reported AI knowledge is significantly associated with greater willingness to share personal data with AI applications, with significance seen across all gender groups.
+
+```{r echo=FALSE}
+
+# Hypothesis 1 (Infographic): Welch Two Sample t-test
+t_test_infographic <- t.test(filtered_survey$AIApplications ~ as.factor(filtered_survey$ControlorTreatment), var.equal = FALSE)
+p_value_infographic <- t_test_infographic$p.value
+CI_infographic <- paste0("[", round(t_test_infographic$conf.int[1], 3), ", ", round(t_test_infographic$conf.int[2], 3), "]")
+
+# Hypothesis 2 (Chronic Illness): Welch Two Sample t-test
+t_test_chronic <- t.test(filtered_survey$AIApplications ~ as.factor(filtered_survey$ChronicIllness), var.equal = FALSE)
+p_value_chronic_ttest <- t_test_chronic$p.value
+CI_chronic <- paste0("[", round(t_test_chronic$conf.int[1], 3), ", ", round(t_test_chronic$conf.int[2], 3), "]")
+
+# Hypothesis 3 (AI Knowledge): Extract p-values from previously defined aov models
+p_value_ai_knowledge <- summary(aov_model_h3)[[1]]$`Pr(>F)`[1]
+p_value_ai_males <- summary(aov_model_h3_male)[[1]]$`Pr(>F)`[1]
+p_value_ai_females <- summary(aov_model_h3_female)[[1]]$`Pr(>F)`[1]
+
+# Hypothesis 2 (Chronic Illness): ANOVA p-value
+p_value_chronic_anova <- summary(aov_model_h2)[[1]]$`Pr(>F)`[1]
+
+# Create summary table with p-values and CI where applicable
+summary_table <- data.frame(
+  Hypothesis = c("Treatment (Infographic)", "Chronic Illness", "Chronic Illness", 
+                 "AI Knowledge (Overall)", "AI Knowledge (Males)", "AI Knowledge (Females)"),
+  Test = c("Welch t-test", "ANOVA", "Welch t-test", "ANOVA", "ANOVA", "ANOVA"),
+  p_value = c(format(p_value_infographic, scientific = FALSE, digits = 4),
+              format(p_value_chronic_anova, scientific = FALSE, digits = 4),
+              format(p_value_chronic_ttest, scientific = FALSE, digits = 4),
+              format(p_value_ai_knowledge, scientific = FALSE, digits = 4),
+              format(p_value_ai_males, scientific = FALSE, digits = 4),
+              format(p_value_ai_females, scientific = FALSE, digits = 4)),
+  Significant = c(ifelse(p_value_infographic < 0.05, "Yes", "No"),
+                  ifelse(p_value_chronic_anova < 0.05, "Yes", "No"),
+                  ifelse(p_value_chronic_ttest < 0.05, "Yes", "No"),
+                  ifelse(p_value_ai_knowledge < 0.05, "Yes", "No"),
+                  ifelse(p_value_ai_males < 0.05, "Yes", "No"),
+                  ifelse(p_value_ai_females < 0.05, "Yes", "No")),
+  CI = c(CI_infographic, CI_chronic, "N/A", "N/A", "N/A", "N/A")  # CI for t-tests, not ANOVA
+)
+
+# Display table
+knitr::kable(summary_table, caption = "Summary Table with p-values, 95% Confidence Interval (CI), and Significance")
+```
 
 # Discussion
 <!--
 What are the implications of the study? What are possible explanations if the results do not align with your hypothesis? Any suggestions for future studies?
 -->
 
+This study explored the factors influencing individual's willingness to share personal data with AI applications. The results suggest that self-reported AI knowledge significantly impacted participants' willingness to share their data, while exposure to an AI infographic and/or presence of chronic illness did not. 
+
+The significant effect of AI knowledge suggests that individuals who feel more informed about AI are more likely to trust it with their personal information. On the otherhand, the lack of effectiveness from the treatment may indicate that a single exposure is not enough to change people's perceptions of AI. It is also possible that the infographic wasn't informative enough. Similarly, the lack of significance of chronic illness could reflect privacy or personal concerns that were not captured by our survey. 
+
+These findings suggest that efforts aimed at increasing AI knowledge could potentially increase public trust in AI technology. Educational resources that address common misconceptions and/or define the benefits versus risks could be useful for future adaptiation or implementation of AI applications. 
+
+Future research could explore how different methods of education improve data-sharing attitudes. Additionally, another study could explore how privacy concerns related to AI and personal data vary across different socioeconomic and demographic groups. 
 
 
-### For your information
-<!--
-Some example code for different plots. Below is only for your information. Submit your report after removing this section.
--->
-
-# the built-in R data set named ToothGrowth:
-# data from a study evaluating the effect of Vitamin C on tooth growth in Guinea pigs.
-# The experiment has been performed on 60 pigs, where each animal received one of three dose levels of vitamin C (0.5, 1, and 2 mg/day) by one of two delivery methods, orange juice or ascorbic acid (a form of vitamin C and coded as VC). Tooth length was measured and a sample of the data is shown below
-my_data = ToothGrowth
-str(my_data)
-
-# Convert dose as a factor and recode the levels
-# as D0.5, D1, D2
-my_data$dose <- factor(my_data$dose,
-                       levels = c(0.5, 1, 2),
-                       labels = c("D0.5", "D1", "D2"))
-head(my_data)
-
-# frequency table:
-table(my_data$supp, my_data$dose)
-```
-
-
-#```{r}
-# Line plots with multiple groups
-# plot tooth length ("len") by groups ("dose")
-# color box plot by a second group: "supp"
-# add error bars: mean_se
-library(ggpubr)
-ggline(my_data, x = "dose", y = "len", color = "supp",
-       add = c("mean_se", "dotplot"),
-       palette = c("#00AFBB", "#E7B800"))
-
-# OR
-# using R base graphs:
-boxplot(len ~ supp * dose, data = my_data, frame = FALSE,
-        col = c("#00AFBB", "#E7B800"), ylab = "Tooth Length")
-
-# Another example: Two-way interaction plot
-interaction.plot(x.factor = my_data$dose, trace.factor = my_data$supp,
-                 # x.factor: the factor to be plotted on x axis
-                 # trace.factor: the factor to be plotted as lines
-                 # response: a numeric variable giving the response
-                 response = my_data$len, fun = mean,
-                 # type: the type of plot (p: point, l: line, b: both point and line)
-                 type = "b", legend = TRUE,
-                 xlab = "Dose", ylab = "Tooth Length",
-                 pch = c(1, 19), col = c("#00AFBB", "#E7B800"))
-```
 
